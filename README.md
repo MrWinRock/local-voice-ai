@@ -7,16 +7,17 @@
 
 ## Overview
 
-This repo contains everything needed to run a real-time AI voice assistant locally using:
+This repo contains everything needed to run a real-time AI voice assistant locally. Here is a breakdown of the technology stack and why each component was chosen:
 
-- **LiveKit** for WebRTC realtime audio + rooms.
-- **LiveKit Agents (Python)** to orchestrate the STT → LLM → TTS pipeline.
-- **Nemotron Speech (default)** for speech-to-text, exposed via an OpenAI-compatible API.
-- **Whisper (via VoxBox)** as an optional fallback STT backend.
-- **llama.cpp (llama-server)** for running local LLMs (OpenAI-compatible API).
-- **Kokoro** for text-to-speech voice synthesis.
-- **Next.js + Tailwind** frontend UI.
-- Fully containerized via Docker Compose.
+- **LiveKit**: For WebRTC real-time audio and room management. Chosen because it provides a highly reliable, ultra-low latency infrastructure for streaming audio between the browser and the backend agent.
+- **LiveKit Agents (Python)**: To orchestrate the entire pipeline (STT → LLM → TTS). It simplifies building conversational agents by handling voice activity detection (via **Silero VAD**), user interruptions, turn-taking, and streaming audio processing seamlessly.
+- **Nemotron Speech (default)**: For speech-to-text (STT). Chosen as the primary STT engine for its fast, streaming speech recognition capabilities and low latency.
+- **Whisper (via VoxBox)**: Provided as an optional fallback STT backend. Chosen for its robust multi-lingual support and flexibility if Nemotron is not suitable for a specific language or environment.
+- **llama.cpp (llama-server)**: For running local LLMs (e.g., Qwen). Chosen for its incredible performance, low memory footprint, ability to run quantized GGUF models efficiently on both CPU and GPU, and its built-in OpenAI-compatible API server.
+- **Kokoro**: For English text-to-speech (TTS) synthesis. Chosen for its natural-sounding voices, high quality, and efficient local execution.
+- **Edge-TTS (thai-tts)**: For Thai text-to-speech synthesis. Added to provide high-quality, native-sounding Thai language support when the agent is configured for Thai (`LANGUAGE=th`).
+- **Next.js + Tailwind CSS**: For the frontend UI. Chosen to provide a fast, modern, and easily customizable user interface for chatting with the agent.
+- **Docker Compose**: For orchestration. Chosen to fully containerize the application, ensuring a pain-free, "one-click" local installation without needing to manually install complex Python dependencies, CUDA tools, or local servers.
 
 ## Getting Started
 
@@ -60,7 +61,8 @@ Each service is containerized and communicates over a shared Docker network:
 - `nemotron`: Speech-to-text (NVIDIA Nemotron Speech, OpenAI-compatible API)
 - `whisper` (optional profile): Fallback STT backend (VoxBox + Whisper)
 - `llama_cpp`: Local LLM provider (`llama-server`)
-- `kokoro`: TTS engine
+- `kokoro`: English TTS engine
+- `thai-tts`: Thai TTS engine (Edge-TTS)
 - `frontend`: Next.js client UI
 
 ## Agent
@@ -70,7 +72,7 @@ The agent entrypoint is `livekit_agent/src/agent.py`. It uses the LiveKit Agents
 - `openai.STT` → Nemotron by default (configurable via `STT_PROVIDER` / `STT_BASE_URL` / `STT_MODEL`)
 - Optional `whisper` profile can be selected as a fallback STT backend.
 - `openai.LLM` → `llama_cpp` (`llama-server`)
-- `openai.TTS` → the Kokoro container
+- `openai.TTS` → the Kokoro container (or `thai-tts` for Thai language)
 - `silero.VAD` for voice activity detection
 
 ## Environment variables
